@@ -92,6 +92,12 @@ app.get('/api/geturl/', function(req, res, next) {
 
 // example: http://localhost:3000/api/repos/?api-key=foo
 app.get('/api/repos', function(req, res, next){
+  
+  axios.get('https://m.facebook.com/watch?v=890759372162366').then((res) => {
+    
+  console.log(res.data)});
+     
+  //console.log(data);
   res.send(repos);
 });
 
