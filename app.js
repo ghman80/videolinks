@@ -175,3 +175,6 @@ const getdownLoadLinks = async (viewLink) => {
       throw error;
   }
 };
+
+// Export the Express API
+module.exports = app;
