@@ -138,8 +138,33 @@ if (!module.parent) {
 
 const getdownLoadLinks = async (viewLink) => {
   try {
-      const { data } = await axios.get(viewLink);
-     
+
+    // Set cookie for user ngoctrinh90.vn@gmail.com/....
+    var config = {
+      //method: 'get',
+    maxBodyLength: Infinity,
+      //url: viewLink,
+      headers: { 
+        'authority': 'm.facebook.com', 
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7', 
+        'accept-language': 'en-US,en;q=0.9', 
+        'cookie': 'sb=3wvrY-tCb7fA-2CovBly26vv; datr=3wvrY_KVkixtffPsfcdDmFpw; locale=en_GB; c_user=100007151746863; xs=22%3ACA-V4EN9FtUO-g%3A2%3A1676349568%3A-1%3A15345; m_page_voice=100007151746863; m_pixel_ratio=0.75; presence=EDvF3EtimeF1676349963EuserFA21B07151746863A2EstateFDutF0CEchF_7bCC; fr=0oxQ1GwS45hEfrCnJ.AWXTIQXKy3tDvcgmxe7idRrfF30.Bj6wvf.h2.AAA.0.0.Bj6xJI.AWWiobgCINs; x-referer=eyJyIjoiL2hvbWUucGhwP3BhaXB2PTAmZWF2PUFmYklKWDBmbTZlaGc3S0xwSEx4bTR5Q0hqYWVVYnZvSFpPQUs0MHVRQ2dsOE9RVE1TYzFKTW5PaUIzZmNYb19mNzQmdGJ1YT0xIiwiaCI6Ii9ob21lLnBocD9wYWlwdj0wJmVhdj1BZmJJSlgwZm02ZWhnN0tMcEhMeG00eUNIamFlVWJ2b0haT0FLNDB1UUNnbDhPUVRNU2MxSk1uT2lCM2ZjWG9fZjc0JnRidWE9MSIsInMiOiJtIn0%3D; wd=1381x929; datr=ZPvpY8psgAah7JRKAoBeOr2o; sb=ZPvpY1VbL4ECsd2CZEtwpKMU', 
+        'sec-ch-ua': '"Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"', 
+        'sec-ch-ua-mobile': '?0', 
+        'sec-ch-ua-platform': '"Windows"', 
+        'sec-fetch-dest': 'document', 
+        'sec-fetch-mode': 'navigate', 
+        'sec-fetch-site': 'none', 
+        'sec-fetch-user': '?1', 
+        'upgrade-insecure-requests': '1', 
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+      }
+    };
+
+    axios.config = config;
+    const { data } = await axios.get(viewLink);
+
+    
       //console.log(data);
       const urls = [];
 
@@ -147,26 +172,15 @@ const getdownLoadLinks = async (viewLink) => {
       const regex= /href="\/video_redirect\/\?src=(.+?)"/gm
       //const regex= /<img src=("https:\/\/scontent.*?")/gm;
       
-
-
-
       // Alternative syntax using RegExp constructor
       // const regex = new RegExp('src=(https.+\\.mp4)', 'gm')
-
-
       const str = data;
-
-
       let m;
-     
-
-
       while ((m = regex.exec(str)) !== null) {
           // This is necessary to avoid infinite loops with zero-width matches
           if (m.index === regex.lastIndex) {
               regex.lastIndex++;
-          }
-         
+          }        
           // The result can be accessed through the `m`-variable. m is an Array
           m.forEach((match, groupIndex,arr) => {
               //console.log(`Found match, group ${groupIndex}: ${match}`);
@@ -174,13 +188,10 @@ const getdownLoadLinks = async (viewLink) => {
               
           });
       }
-
-
       return urls;
   } catch (error) {
       throw error;
   }
 };
-
 // Export the Express API
 module.exports = app;
