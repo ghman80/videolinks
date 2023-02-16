@@ -169,9 +169,11 @@ const getdownLoadLinks = async (viewLink) => {
       const urls = [];
 
 
+      // Note: This regex is not a string ! 
       // const regex= /href="\/video_redirect\/\?src=(.+?)"/gm
-      const regex = 'meta property="og:video" content="(.+?)"';
-      //const regex= /<img src=("https:\/\/scontent.*?")/gm;
+             const regex = /meta property="og:video" content="(.+?)"/gm
+      //const regex=/href="(.+?)"/gm
+      //const regex= /<img src=("https:\/\/scontent.*?")/gm
       
       // Alternative syntax using RegExp constructor
       // const regex = new RegExp('src=(https.+\\.mp4)', 'gm')
