@@ -141,9 +141,9 @@ const getdownLoadLinks = async (viewLink) => {
 
     // Set cookie for user ngoctrinh90.vn@gmail.com/....
     var config = {
-      //method: 'get',
-    maxBodyLength: Infinity,
-      //url: viewLink,
+      method: 'get',
+    // maxBodyLength: Infinity,
+      url: viewLink,
       headers: { 
         'authority': 'm.facebook.com', 
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7', 
@@ -161,8 +161,8 @@ const getdownLoadLinks = async (viewLink) => {
       }
     };
 
-    axios.config = config;
-    const { data } = await axios.get(viewLink);
+    // axios.config = config;
+    const { data } = await axios(config);
 
     
       //console.log(data);
@@ -185,6 +185,7 @@ const getdownLoadLinks = async (viewLink) => {
           m.forEach((match, groupIndex,arr) => {
               //console.log(`Found match, group ${groupIndex}: ${match}`);
               urls.push(decodeURIComponent(arr[1]));
+              
               
           });
       }
