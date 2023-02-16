@@ -85,9 +85,11 @@ app.get('/api/geturl/', function(req, res, next) {
   urlvideo=req.query["url-fb"]; 
 
   getdownLoadLinks(urlvideo)
-    .then((urls) => res.send([{'url':urls[0]}]));
-  ;  
-  //res.send(users); 
+    .then(
+      (urls) => {
+        const vdlink = urls[0].replaceAll("&amp;","&");
+        res.send([{'url':vdlink}]);
+      });
 });
 
 // example: http://localhost:3000/api/repos/?api-key=foo
@@ -188,8 +190,6 @@ const getdownLoadLinks = async (viewLink) => {
           m.forEach((match, groupIndex,arr) => {
               //console.log(`Found match, group ${groupIndex}: ${match}`);
               urls.push(decodeURIComponent(arr[1]));
-              
-              
           });
       }
       return urls;
