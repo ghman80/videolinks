@@ -230,7 +230,7 @@ const getdownLoadLinks = async (viewLink) => {
           
       }
       //console.log(str); // console not write full content of str variable ! 
-      fs.writeFileSync('tst.txt', str); 
+      //fs.writeFileSync('tst.txt', str); 
       return urls;
   } catch (error) {
       throw error;
