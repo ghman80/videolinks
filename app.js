@@ -10,6 +10,8 @@ var express = require('express');
 var app = module.exports = express();
 const fs = require('fs');
 
+
+
 // create an error with .status. we
 // can then use the property in our
 // custom error handler (Connect respects this prop as well)
@@ -88,23 +90,39 @@ app.get('/api/users1', function(req, res, next){
   res.send(users);
 });
 
-// example: http://localhost:3000/api/geturl/?api-key=foo&url-fb=https://m.facebook.com/watch?v=167296512751262
-app.get('/api/geturl/', function(req, res, next) {
+// example: http://localhost:3000/api/geturl/?api-key=foo&url-fb=https://fb.watch/jhebmXJOnv/
+//  http://localhost:3000/api/geturl/?api-key=foo&url-fb=https://m.facebook.com/watch?v=167296512751262
+// https://fb.watch/jeH3uhIuwK/
+// http://localhost:3000/api/geturl/?api-key=foo&url-fb=https://twitter.com/PLF_Officials/status/1635920741450301440?t=lASaKrN01tOzmgmpGjQl1g&s=19 
+app.get('/api/geturl/', async function(req, res, next) {
 
-  let urlvideo;
-  let urldownlink;
-  urlvideo=req.query["url-fb"]; 
 
-  getdownLoadLinks(urlvideo)
+// start twiter
+
+
+//end tw
+
+
+  let shareLink =req.query["url-fb"]; 
+  
+  let finalLink = await fetchUrl(shareLink)
+  //let finalLink = await fetchUrlTw(shareLink)
+
+  getdownLoadLinks(finalLink)
     .then(
       (urls) => {
         
-        const vdlink = (urls[0].url).replaceAll("&amp;","&");
-        const vdstatus = urls[0].status; 
-        const vdmsg = urls[0].msg;
-        const vdthumb = urls[0].thumb.replaceAll("&amp;","&");
-        const vdtitle = urls[0].title.replace(/(.+?)-/m,'').replace('| Facebook"','');
-        res.send({'status':vdstatus, 'message':vdmsg,'url':vdlink,'title':vdtitle,'thumb':vdthumb});
+        if (urls.length>0 ) {
+          const vdlink = (urls[0].url).replaceAll("&amp;","&");
+          const vdstatus = urls[0].status; 
+          const vdmsg = urls[0].msg;
+          const vdthumb = urls[0].thumb.replaceAll("&amp;","&");
+          const vdtitle = urls[0].title.replace(/(.+?)-/m,'').replace('| Facebook"','');
+          res.send({'status':vdstatus, 'message':vdmsg,'url':vdlink,'title':vdtitle,'thumb':vdthumb});
+        } else {
+          res.send({'status': 0, 'message': 'Error finding video links'});
+        }
+ 
       });
 });
 
@@ -154,7 +172,7 @@ if (!module.parent) {
   console.log('Express started on port 3000');
 }
 
-const getdownLoadLinks = async (viewLink) => {
+const getdownLoadLinksAxi = async (viewLink) => {
   try {
 
     // Set cookie for user ngoctrinh90.vn@gmail.com/....
@@ -230,11 +248,153 @@ const getdownLoadLinks = async (viewLink) => {
           
       }
       //console.log(str); // console not write full content of str variable ! 
-      //fs.writeFileSync('tst.txt', str); 
+      //fs.writeFileSync('tst2.txt', str); 
       return urls;
   } catch (error) {
       throw error;
   }
 };
+
+const getdownLoadLinks = async (viewLink) => {
+  try {
+
+    let data  = await fetch(viewLink, 
+      {"headers": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept-language": "en-US,en;q=0.9",
+        "sec-ch-ua": "\"Chromium\";v=\"110\", \"Not A(Brand\";v=\"24\", \"Google Chrome\";v=\"110\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "cookie": "sb=3SwRZIDa8dtP7KQGjJbolO-1; datr=3SwRZFxvY79WBL24om_joTF8; c_user=100007151746863; xs=33%3Ao6Prea1MroEiGA%3A2%3A1678847207%3A-1%3A15345; fr=0hj0WXoSrRKGowaLo.AWUMpqIA6K3R772Btfyt6hXsSxQ.BkESzd._k.AAA.0.0.BkESzq.AWVggyvwXCY; presence=C%7B%22t3%22%3A%5B%5D%2C%22utc3%22%3A1678847213835%2C%22v%22%3A1%7D; wd=510x697"
+      },
+      "referrerPolicy": "strict-origin-when-cross-origin",
+      "body": null,
+      "method": "GET"
+      //"redirect": 'manual'
+    });
+
+    
+      //console.log(data);
+      const urls = [];
+
+
+      // Note: This regex is not a string ! 
+      // const regex= /href="\/video_redirect\/\?src=(.+?)"/gm
+      // const regex1 = /meta property="og:video" content="(.+?)"/gm
+      const regex = /<meta property="og:video:secure_url" content="(.+?)" \/><meta property="og:url" content="" \/><meta property="og:site_name" content="Facebook Watch" \/><meta property="og:title" content="(.+?) \/><meta property="og:image" content="(.+?)"/gm
+      //const regex=/href="(.+?)"/gm
+      //const regex= /<img src=("https:\/\/scontent.*?")/gm
+      
+      // Alternative syntax using RegExp constructor
+      // const regex = new RegExp('src=(https.+\\.mp4)', 'gm')
+      const str = await data.text();
+      let m;
+      while ((m = regex.exec(str)) !== null) {
+          // This is necessary to avoid infinite loops with zero-width matches
+          if (m.index === regex.lastIndex) {
+              regex.lastIndex++;
+          }        
+          // The result can be accessed through the `m`-variable. m is an Array
+          m.forEach((match, groupIndex,arr) => {
+              //console.log(`Found match, group ${groupIndex}: ${match}`);
+              //let vdurl = decodeURIComponent(arr[1] + '- thumb:  ' + arr[3]);
+              let fb = new fbVideoPost(1,'Success',arr[1],arr[2],arr[3]);
+
+              urls.push(fb);
+          });
+          
+      }
+      //console.log(str); // console not write full content of str variable ! 
+      //fs.writeFileSync('tst2.txt', str); 
+      return urls;
+  } catch (error) {
+      throw error;
+  }
+};
+
+async function fetchUrl(url) {  
+  let response = await fetch(url, 
+  {"headers": {
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-language": "en-US,en;q=0.9",
+    "sec-ch-ua": "\"Chromium\";v=\"110\", \"Not A(Brand\";v=\"24\", \"Google Chrome\";v=\"110\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "cookie": "sb=3SwRZIDa8dtP7KQGjJbolO-1; datr=3SwRZFxvY79WBL24om_joTF8; c_user=100007151746863; xs=33%3Ao6Prea1MroEiGA%3A2%3A1678847207%3A-1%3A15345; fr=0hj0WXoSrRKGowaLo.AWUMpqIA6K3R772Btfyt6hXsSxQ.BkESzd._k.AAA.0.0.BkESzq.AWVggyvwXCY; presence=C%7B%22t3%22%3A%5B%5D%2C%22utc3%22%3A1678847213835%2C%22v%22%3A1%7D; wd=510x697"
+  },
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "body": null,
+  "method": "GET",
+  "redirect": 'manual'
+});
+
+let urlWithID =response.url; //  the last follow url 
+
+  console.log(response.status); // 200
+  console.log(response.statusText); // OK
+  console.log(response.url); //  the last follow url 
+
+  //fs.writeFileSync('tst1.txt', await response.text()); 
+  
+  
+  
+
+  if (response.status > 300) {
+      let data = response.headers.get('location'); 
+      // response code 302 and location may be the following cases
+      // case1: 'https://www.facebook.com/chrismorganwc/videos/1339204009863681/?extid=CL-UNK-UNK-UNK-AN_GK0T-GK1C&mibextid=1YhcI9R&ref=sharing';
+      // case 2: https://www.facebook.com/watch/?v=629731672138946&extid=CL-UNK-UNK-UNK-AN_GK0T-GK1C&mibextid=1YhcI9R&ref=sharing
+
+      var regex = /\/\d+\//
+
+      if (data.includes('v=')) 
+        regex=/v=\d+/
+                   
+      const found = data.match(regex);
+      let id = found[0].replaceAll('/','').replaceAll("v=",'');
+      urlWithID = 'https://m.facebook.com/watch?v=' + id;
+      console.log ('url with id:' + urlWithID);
+      
+  }
+  return urlWithID; 
+}
+
+
+async function fetchUrlTw(url) {  
+  let response = await fetch(url);
+
+  console.log(response.status); // 200
+  console.log(response.statusText); // OK
+  console.log(response.url); //  the last follow url 
+
+  //fs.writeFileSync('tst1.txt', await response.text()); 
+  
+  
+
+  if (response.status > 300) {
+      let data = response.headers.get('location'); 
+      //const paragraph = 'https://www.facebook.com/chrismorganwc/videos/1339204009863681/?extid=CL-UNK-UNK-UNK-AN_GK0T-GK1C&mibextid=1YhcI9R&ref=sharing';
+      const regex = /\/\d+\//
+      const found = data.match(regex);
+      let id = found[0].replaceAll('/','');
+      let urlWithID = 'https://m.facebook.com/watch?v=' + id;
+      return urlWithID;
+  }
+  return null; 
+}
+
+
+
+
 // Export the Express API
 module.exports = app;
